@@ -10,7 +10,7 @@ import torch.nn as nn
 import torchvision
 import torchvision.transforms as transforms
 from torch.autograd import Variable
-
+import numpy as np
 
 #Initializing hyperparameters:
 batch_size = 128
@@ -69,9 +69,11 @@ class discriminator(nn.Module):
         return(fc1_out, fc10_out)
 
 model =  discriminator()
-#model.cuda()
+model.cuda()
 criterion = nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
+train_accuracy = []
+test_accuracy = []
 
 for epochs in range(num_epochs):
     #scheduler.step()
@@ -105,16 +107,16 @@ for epochs in range(num_epochs):
         _, output = model(X_train_batch)
     
         loss = criterion(output, Y_train_batch)
-        _, predicted = torch.max(output.data, 1)
-        total = total + Y_train_batch.size(0)
-        correct = correct + (predicted == Y_train_batch.data).sum()
+        prediction = output.data.max(1)[1]
+        accuracy = (float(prediction.eq(Y_train_batch.data).sum())/float(batch_size))*100.0 #Computing the training accuracy
+        train_accuracy.append(accuracy)
         
         #Backward propagation:
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
         
-    train_acc = correct/total
+    train_acc = np.mean(train_accuracy)
     print('Training accuracy: \t', train_acc)
     #print('--------------------------------------------------')
     
@@ -133,10 +135,10 @@ for epochs in range(num_epochs):
             _, output = model(X_test_batch)
         
             loss = criterion(output, Y_test_batch)
-            _, predicted = torch.max(output.data, 1)
-            total = total + Y_test_batch.size(0)
-            correct = correct + (predicted == Y_test_batch.data).sum()
-    test_acc = correct/total
+            prediction = output.data.max(1)[1]
+            accuracy = (float(prediction.eq(Y_test_batch.data).sum())/float(batch_size))*100.0 #Computing the training accuracy
+        test_accuracy.append(accuracy)
+    test_acc = np.mean(test_accuracy)
     print('Test Accuracy: \t\t', test_acc)
     print('**************************************************')
     
