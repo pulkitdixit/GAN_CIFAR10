@@ -131,10 +131,8 @@ class generator(nn.Module):
     def __init__(self):
         super(generator, self).__init__()
         
-        self.fc1 = nn.Sequential(
-                nn.Linear(100, 196*4*4),
-                nn.ReLU(),
-                nn.BatchNorm2d(196*4*4))#output 196*4*4
+        self.fc1 = nn.Linear(100, 196*4*4) #output 196*4*4
+        self.bn = nn.BatchNorm2d(196*4*4)
         
         self.conv1 = nn.Sequential(
                 nn.ConvTranspose2d(196, 196, kernel_size = 4, stride = 2, padding = 1),
@@ -177,7 +175,9 @@ class generator(nn.Module):
         
     #Forward Propagation:
     def forward(self, x):
-        x = self.fc1(x)
+        x = nn.ReLU(self.fc1(x))
+        x = self.bn(x)
+        
         x = x.view(-1, 196, 4, 4)
         
         x = self.conv1(x)
