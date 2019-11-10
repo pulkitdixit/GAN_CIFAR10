@@ -14,7 +14,7 @@ import numpy as np
 
 #Creating the CNN:
 class discriminator(nn.Module):
-    def __init__(self, features=0):
+    def __init__(self):
         super(discriminator, self).__init__()
         
         self.features = features
@@ -66,10 +66,16 @@ class discriminator(nn.Module):
      
     #Forward Propagation:
     def forward(self, x, extract_features=0):
-        extract_features = self.features
+        extract_features = 2
         
         x = self.conv1(x)
         x = self.conv2(x)
+        
+        if(extract_features==2):
+            h = torch.nn.functional.max_pool2d(x,4,4)
+            h = h.view(-1, 196)
+            return h
+        
         x = self.conv3(x)
         x = self.conv4(x)
         x = self.conv5(x)
@@ -77,10 +83,6 @@ class discriminator(nn.Module):
         x = self.conv7(x)
         x = self.conv8(x)
         
-        if(extract_features==8):
-            h = torch.nn.functional.max_pool2d(x,4,4)
-            h = h.view(-1, 196)
-            return h
         x = self.pool(x)
         
         #Reshaping the image to input it into the linear layer
